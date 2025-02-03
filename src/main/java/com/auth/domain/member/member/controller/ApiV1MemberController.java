@@ -1,0 +1,45 @@
+package com.auth.domain.member.member.controller;
+
+import com.auth.domain.member.member.dto.MemberDto;
+import com.auth.domain.member.member.entity.Member;
+import com.auth.domain.member.member.service.MemberService;
+import com.auth.global.dto.RsData;
+import com.auth.global.exception.ServiceException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Length;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/members")
+@RequiredArgsConstructor
+public class ApiV1MemberController {
+
+    private final MemberService memberService;
+
+    record JoinReqBody(@NotBlank @Length(min = 3) String username,
+                       @NotBlank @Length(min = 3) String password,
+                       @NotBlank @Length(min = 3) String nickname) {
+    }
+
+    @PostMapping("/join")
+    public RsData<MemberDto> join(@RequestBody @Valid JoinReqBody body) {
+
+
+        memberService.findByUsername(body.username())
+                .ifPresent(member -> {
+                    throw new ServiceException("400-1", "중복된 아이디입니다.");
+                });
+
+
+        Member member = memberService.join(body.username(), body.password(), body.nickname());
+
+        return new RsData<>(
+                "201-1",
+                "회원 가입이 완료되었습니다.",
+                new MemberDto(member)
+        );
+    }
+
+}
