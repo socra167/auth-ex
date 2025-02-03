@@ -23,7 +23,6 @@ import com.auth.global.exception.ServiceException;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -52,17 +51,12 @@ public class ApiV1PostController {
 	}
 
 	@DeleteMapping("/{id}")
-	public RsData<Void> delete(@PathVariable long id, @RequestHeader Long authorId, @RequestHeader String password) {
-		// 인증
-		Member actor = memberService.findById(authorId).get();
-		if (!actor.getPassword().equals(password)) { // 비밀번호 검사
-			throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
-		}
-
+	public RsData<Void> delete(@PathVariable long id, @RequestHeader @NotBlank String credentials) {
+		Member actor = getAuthenticatedActor(credentials);
 		Post post = postService.getItem(id).get();
 
 		// 자신이 등록한 글만 삭제할 수 있다 : 인가
-		if (post.getAuthor().getId() != authorId) {
+		if (post.getAuthor().getId() != actor.getId()) {
 			throw new ServiceException("403-1", "자신이 작성한 글만 삭제 가능합니다.");
 		}
 
@@ -76,17 +70,13 @@ public class ApiV1PostController {
 
 	@PutMapping("/{id}")
 	public RsData<Void> modify(@PathVariable long id, @RequestBody @Valid ModifyReqBody body,
-		@RequestHeader Long authorId, @RequestHeader String password) {
-		// 인증
-		Member actor = memberService.findById(authorId).get();
-		if (!actor.getPassword().equals(password)) { // 비밀번호 검사
-			throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
-		}
+		@RequestHeader @NotBlank String credentials) {
+		Member actor = getAuthenticatedActor(credentials);
 
 		Post post = postService.getItem(id).get();
 
 		// 자신이 등록한 글만 수정할 수 있다 : 인가
-		if (post.getAuthor().getId() != authorId) {
+		if (post.getAuthor().getId() != actor.getId()) {
 			throw new ServiceException("403-1", "자신이 작성한 글만 수정 가능합니다.");
 		}
 
@@ -99,19 +89,23 @@ public class ApiV1PostController {
 
 	@PostMapping
 	public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body, @RequestHeader @NotBlank String credentials) {
+		Member actor = getAuthenticatedActor(credentials);
 
+		Post post = postService.write(actor, body.title(), body.content());
+
+		return new RsData<>("200-1", "글 작성이 완료되었습니다.", new PostDto(post));
+	}
+
+	private Member getAuthenticatedActor(String credentials) {
 		String[] credentialsBits = credentials.split("/");
 		long authorId = Long.parseLong(credentialsBits[0]);
 		String password = credentialsBits[1];
 
 		Member actor = memberService.findById(authorId).get();
-
-		if (!actor.getPassword().equals(password)) { // 비밀번호 검사
+		if (!actor.getPassword().equals(password)) {
 			throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
 		}
 
-		Post post = postService.write(actor, body.title(), body.content());
-
-		return new RsData<>("200-1", "글 작성이 완료되었습니다.", new PostDto(post));
+		return actor;
 	}
 }
