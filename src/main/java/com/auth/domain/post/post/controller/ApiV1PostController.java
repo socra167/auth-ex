@@ -97,7 +97,10 @@ public class ApiV1PostController {
 	}
 
 	private Member getAuthenticatedActor(String credentials) {
-		String[] credentialsBits = credentials.split("/");
+		// Bearer 4/user11234
+		String parsedCredentials = credentials.substring("Bearer ".length());
+
+		String[] credentialsBits = parsedCredentials.split("/");
 		long authorId = Long.parseLong(credentialsBits[0]);
 		String password = credentialsBits[1];
 
