@@ -106,7 +106,7 @@ public class ApiV1PostController {
 		Optional<Member> opActor = memberService.findByApiKey(apiKey);
 
 		if (opActor.isEmpty()) { // 이제 동일한 apiKey가 DB에 존재하는지만 확인하면 된다
-			throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
+			throw new ServiceException("401-1", "아이디 또는 비밀번호가 일치하지 않습니다.");
 		}
 
 		Member actor = opActor.get();
