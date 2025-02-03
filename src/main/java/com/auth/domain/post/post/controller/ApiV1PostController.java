@@ -1,5 +1,18 @@
 package com.auth.domain.post.post.controller;
 
+import java.util.List;
+
+import org.hibernate.validator.constraints.Length;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.auth.domain.member.member.entity.Member;
 import com.auth.domain.member.member.service.MemberService;
 import com.auth.domain.post.post.dto.PostDto;
@@ -12,11 +25,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-
-import org.hibernate.validator.constraints.Length;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -66,22 +74,22 @@ public class ApiV1PostController {
 		return new RsData<>("204-1", "%d번 글 삭제가 완료되었습니다.".formatted(id));
 	}
 
-	record ModifyReqBody(@NotBlank @Length(min = 3) String title, @NotBlank @Length(min = 3) String content,
-						 @NotNull Long authorId, @NotBlank @Length(min = 3) String password) {
+	record ModifyReqBody(@NotBlank @Length(min = 3) String title, @NotBlank @Length(min = 3) String content) {
 	}
 
 	@PutMapping("/{id}")
-	public RsData<Void> modify(@PathVariable long id, @RequestBody @Valid ModifyReqBody body) {
+	public RsData<Void> modify(@PathVariable long id, @RequestBody @Valid ModifyReqBody body,
+		@RequestHeader Long authorId, @RequestHeader String password) {
 		// 인증
-		Member actor = memberService.findById(body.authorId()).get();
-		if (!actor.getPassword().equals(body.password)) { // 비밀번호 검사
+		Member actor = memberService.findById(authorId).get();
+		if (!actor.getPassword().equals(password)) { // 비밀번호 검사
 			throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
 		}
 
 		Post post = postService.getItem(id).get();
 
 		// 자신이 등록한 글만 수정할 수 있다 : 인가
-		if (post.getAuthor().getId() != body.authorId()) {
+		if (post.getAuthor().getId() != authorId) {
 			throw new ServiceException("403-1", "자신이 작성한 글만 수정 가능합니다.");
 		}
 
