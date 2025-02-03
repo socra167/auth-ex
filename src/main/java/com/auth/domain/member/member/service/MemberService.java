@@ -23,7 +23,7 @@ public class MemberService {
 		Member member = Member.builder()
 			.username(username)
 			.password(password)
-			.apiKey(uuid.toString())
+			.apiKey(username)
 			.nickname(nickname)
 			.build();
 
