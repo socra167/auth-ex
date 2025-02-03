@@ -6,10 +6,11 @@ import com.auth.domain.post.post.dto.PostDto;
 import com.auth.domain.post.post.entity.Post;
 import com.auth.domain.post.post.service.PostService;
 import com.auth.global.dto.RsData;
+import com.auth.global.exception.ServiceException;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.web.bind.annotation.*;
@@ -84,13 +85,19 @@ public class ApiV1PostController {
     record WriteReqBody(
         @NotBlank @Length(min = 3) String title,
         @NotBlank @Length(min = 3) String content,
-        @NotNull Long authorId) { // validation 체크를 하려면 원시타입이 아닌 객체 타입이어야 한다
+        @NotNull Long authorId, // validation 체크를 하려면 원시타입이 아닌 객체 타입이어야 한다
+        @NotBlank @Length(min = 3) String password) { // 글 작성을 위해 요청을 보낸 사람이 본인임을 인증하기 위해 비밀번호를 받도록 한다
     }
 
     @PostMapping
     public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body) {
 
         Member actor = memberService.findById(body.authorId()).get();
+
+        if (!actor.getPassword().equals(body.password)) { // 비밀번호 검사
+            throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
+        }
+
         Post post = postService.write(actor, body.title(), body.content());
 
         return new RsData<>(
