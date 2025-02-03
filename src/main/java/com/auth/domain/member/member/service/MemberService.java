@@ -14,31 +14,35 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MemberService {
 
-    private final MemberRepository memberRepository;
+	private final MemberRepository memberRepository;
 
-    public Member join(String username, String password, String nickname) {
+	public Member join(String username, String password, String nickname) {
 
-        UUID uuid = UUID.randomUUID();
+		UUID uuid = UUID.randomUUID();
 
-        Member member = Member.builder()
-                .username(username)
-                .password(password)
-                .password2(uuid.toString())
-                .nickname(nickname)
-                .build();
+		Member member = Member.builder()
+			.username(username)
+			.password(password)
+			.password2(uuid.toString())
+			.nickname(nickname)
+			.build();
 
-        return memberRepository.save(member);
-    }
+		return memberRepository.save(member);
+	}
 
-    public long count() {
-        return memberRepository.count();
-    }
+	public long count() {
+		return memberRepository.count();
+	}
 
-    public Optional<Member> findByUsername(String username) {
-        return memberRepository.findByUsername(username);
-    }
+	public Optional<Member> findByUsername(String username) {
+		return memberRepository.findByUsername(username);
+	}
 
-    public Optional<Member> findById(long authorId) {
-        return memberRepository.findById(authorId);
-    }
+	public Optional<Member> findById(long authorId) {
+		return memberRepository.findById(authorId);
+	}
+
+	public Optional<Member> findByPassword2(String password2) {
+		return memberRepository.findByPassword2(password2);
+	}
 }

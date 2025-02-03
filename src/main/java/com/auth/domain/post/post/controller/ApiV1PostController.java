@@ -1,6 +1,7 @@
 package com.auth.domain.post.post.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.hibernate.validator.constraints.Length;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -101,16 +102,18 @@ public class ApiV1PostController {
 		String credentials = request.getHeader("Authorization");
 		// HttpServletRequest에서 직접 인증 정보를 가져온다
 		// 각 메서드에서 Header를 신경쓰지 않아도 된다 (@RequestHeader 제거)
-		String parsedCredentials = credentials.substring("Bearer ".length());
+		String password2 = credentials.substring("Bearer ".length());
+		Optional<Member> opActor = memberService.findByPassword2(password2);
 
-		String[] credentialsBits = parsedCredentials.split("/");
-		long authorId = Long.parseLong(credentialsBits[0]);
-		String password = credentialsBits[1];
-
-		Member actor = memberService.findById(authorId).get();
-		if (!actor.getPassword2().equals(password)) {
+		if (opActor.isEmpty()) { // 이제 동일한 password2가 DB에 존재하는지만 확인하면 된다
 			throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
 		}
+
+		Member actor = opActor.get();
+
+		// if (!actor.getPassword2().equals(password2)) {
+		// 	throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
+		// }
 
 		return actor;
 	}
