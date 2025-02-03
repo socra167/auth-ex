@@ -1,14 +1,14 @@
 package com.auth.domain.member.member.service;
 
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.auth.domain.member.member.entity.Member;
 import com.auth.domain.member.member.repository.MemberRepository;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,9 +17,13 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     public Member join(String username, String password, String nickname) {
+
+        UUID uuid = UUID.randomUUID();
+
         Member member = Member.builder()
                 .username(username)
                 .password(password)
+                .password2(uuid.toString())
                 .nickname(nickname)
                 .build();
 
