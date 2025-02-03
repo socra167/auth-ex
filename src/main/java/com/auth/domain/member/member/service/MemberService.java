@@ -23,7 +23,7 @@ public class MemberService {
 		Member member = Member.builder()
 			.username(username)
 			.password(password)
-			.password2(uuid.toString())
+			.apiKey(uuid.toString())
 			.nickname(nickname)
 			.build();
 
@@ -42,7 +42,7 @@ public class MemberService {
 		return memberRepository.findById(authorId);
 	}
 
-	public Optional<Member> findByPassword2(String password2) {
-		return memberRepository.findByPassword2(password2);
+	public Optional<Member> findByApiKey(String apiKey) {
+		return memberRepository.findByApiKey(apiKey);
 	}
 }

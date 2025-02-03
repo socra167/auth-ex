@@ -102,16 +102,16 @@ public class ApiV1PostController {
 		String credentials = request.getHeader("Authorization");
 		// HttpServletRequest에서 직접 인증 정보를 가져온다
 		// 각 메서드에서 Header를 신경쓰지 않아도 된다 (@RequestHeader 제거)
-		String password2 = credentials.substring("Bearer ".length());
-		Optional<Member> opActor = memberService.findByPassword2(password2);
+		String apiKey = credentials.substring("Bearer ".length());
+		Optional<Member> opActor = memberService.findByApiKey(apiKey);
 
-		if (opActor.isEmpty()) { // 이제 동일한 password2가 DB에 존재하는지만 확인하면 된다
+		if (opActor.isEmpty()) { // 이제 동일한 apiKey가 DB에 존재하는지만 확인하면 된다
 			throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
 		}
 
 		Member actor = opActor.get();
 
-		// if (!actor.getPassword2().equals(password2)) {
+		// if (!actor.getapiKey().equals(apiKey)) {
 		// 	throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
 		// }
 
