@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +20,7 @@ import com.auth.domain.post.post.service.PostService;
 import com.auth.global.dto.RsData;
 import com.auth.global.exception.ServiceException;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +32,7 @@ public class ApiV1PostController {
 
 	private final PostService postService;
 	private final MemberService memberService;
+	private final HttpServletRequest request; // HttpServletRequest에서 직접 인증 정보를 가져오기
 
 	@GetMapping
 	public RsData<List<PostDto>> getItems() {
@@ -51,8 +52,8 @@ public class ApiV1PostController {
 	}
 
 	@DeleteMapping("/{id}")
-	public RsData<Void> delete(@PathVariable long id, @RequestHeader("Authorization") @NotBlank String credentials) {
-		Member actor = getAuthenticatedActor(credentials);
+	public RsData<Void> delete(@PathVariable long id) {
+		Member actor = getAuthenticatedActor();
 		Post post = postService.getItem(id).get();
 
 		// 자신이 등록한 글만 삭제할 수 있다 : 인가
@@ -69,9 +70,8 @@ public class ApiV1PostController {
 	}
 
 	@PutMapping("/{id}")
-	public RsData<Void> modify(@PathVariable long id, @RequestBody @Valid ModifyReqBody body,
-		@RequestHeader("Authorization") @NotBlank String credentials) {
-		Member actor = getAuthenticatedActor(credentials);
+	public RsData<Void> modify(@PathVariable long id, @RequestBody @Valid ModifyReqBody body) {
+		Member actor = getAuthenticatedActor();
 
 		Post post = postService.getItem(id).get();
 
@@ -88,16 +88,19 @@ public class ApiV1PostController {
 	}
 
 	@PostMapping
-	public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body, @RequestHeader("Authorization") @NotBlank String credentials) {
-		Member actor = getAuthenticatedActor(credentials);
+	public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body) {
+		Member actor = getAuthenticatedActor();
 
 		Post post = postService.write(actor, body.title(), body.content());
 
 		return new RsData<>("200-1", "글 작성이 완료되었습니다.", new PostDto(post));
 	}
 
-	private Member getAuthenticatedActor(String credentials) {
+	private Member getAuthenticatedActor() {
 		// Bearer 4/user11234
+		String credentials = request.getHeader("Authorization");
+		// HttpServletRequest에서 직접 인증 정보를 가져온다
+		// 각 메서드에서 Header를 신경쓰지 않아도 된다 (@RequestHeader 제거)
 		String parsedCredentials = credentials.substring("Bearer ".length());
 
 		String[] credentialsBits = parsedCredentials.split("/");
