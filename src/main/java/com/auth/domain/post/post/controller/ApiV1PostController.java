@@ -23,7 +23,6 @@ import com.auth.global.exception.ServiceException;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -49,9 +48,6 @@ public class ApiV1PostController {
 		Post post = postService.getItem(id).get();
 
 		return new RsData<>("200-1", "글 조회가 완료되었습니다.", new PostDto(post));
-	}
-
-	record DeleteReqBody(@NotNull Long authorId, @NotBlank @Length(min = 3) String password) {
 	}
 
 	@DeleteMapping("/{id}")
