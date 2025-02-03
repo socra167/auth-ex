@@ -1,7 +1,5 @@
 package com.auth.domain.member.member.controller;
 
-import java.util.Optional;
-
 import org.hibernate.validator.constraints.Length;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.auth.domain.member.member.dto.MemberDto;
 import com.auth.domain.member.member.entity.Member;
 import com.auth.domain.member.member.service.MemberService;
+import com.auth.global.Rq;
 import com.auth.global.dto.RsData;
 import com.auth.global.exception.ServiceException;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class ApiV1MemberController {
 
 	private final MemberService memberService;
-	private final HttpServletRequest request;
+	private final Rq rq;
 
 	record JoinReqBody(@NotBlank @Length(min = 3) String username,
 					   @NotBlank @Length(min = 3) String password,
@@ -78,10 +76,7 @@ public class ApiV1MemberController {
 	// 내정보 조회하기
 	@GetMapping("/me")
 	public RsData<MemberDto> me() {
-		String credentials = request.getHeader("Authorization");
-		String apiKey = credentials.substring("Bearer ".length());
-		Member actor = memberService.findByApiKey(apiKey)
-			.orElseThrow(() -> new ServiceException("401-1", "아이디 또는 비밀번호가 일치하지 않습니다."));
+		Member actor = rq.getAuthenticatedActor();
 
 		return new RsData<>(
 			"200-1",

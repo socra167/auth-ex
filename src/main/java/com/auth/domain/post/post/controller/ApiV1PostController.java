@@ -1,7 +1,6 @@
 package com.auth.domain.post.post.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.hibernate.validator.constraints.Length;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,14 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.auth.domain.member.member.entity.Member;
-import com.auth.domain.member.member.service.MemberService;
 import com.auth.domain.post.post.dto.PostDto;
 import com.auth.domain.post.post.entity.Post;
 import com.auth.domain.post.post.service.PostService;
+import com.auth.global.Rq;
 import com.auth.global.dto.RsData;
 import com.auth.global.exception.ServiceException;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class ApiV1PostController {
 
 	private final PostService postService;
-	private final MemberService memberService;
-	private final HttpServletRequest request; // HttpServletRequest에서 직접 인증 정보를 가져오기
+	private final Rq rq;
 
 	@GetMapping
 	public RsData<List<PostDto>> getItems() {
@@ -54,7 +51,7 @@ public class ApiV1PostController {
 
 	@DeleteMapping("/{id}")
 	public RsData<Void> delete(@PathVariable long id) {
-		Member actor = getAuthenticatedActor();
+		Member actor = rq.getAuthenticatedActor();
 		Post post = postService.getItem(id).get();
 
 		// 자신이 등록한 글만 삭제할 수 있다 : 인가
@@ -72,7 +69,7 @@ public class ApiV1PostController {
 
 	@PutMapping("/{id}")
 	public RsData<Void> modify(@PathVariable long id, @RequestBody @Valid ModifyReqBody body) {
-		Member actor = getAuthenticatedActor();
+		Member actor = rq.getAuthenticatedActor();
 
 		Post post = postService.getItem(id).get();
 
@@ -90,31 +87,10 @@ public class ApiV1PostController {
 
 	@PostMapping
 	public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body) {
-		Member actor = getAuthenticatedActor();
+		Member actor = rq.getAuthenticatedActor();
 
 		Post post = postService.write(actor, body.title(), body.content());
 
 		return new RsData<>("200-1", "글 작성이 완료되었습니다.", new PostDto(post));
-	}
-
-	private Member getAuthenticatedActor() {
-		// Bearer 4/user11234
-		String credentials = request.getHeader("Authorization");
-		// HttpServletRequest에서 직접 인증 정보를 가져온다
-		// 각 메서드에서 Header를 신경쓰지 않아도 된다 (@RequestHeader 제거)
-		String apiKey = credentials.substring("Bearer ".length());
-		Optional<Member> opActor = memberService.findByApiKey(apiKey);
-
-		if (opActor.isEmpty()) { // 이제 동일한 apiKey가 DB에 존재하는지만 확인하면 된다
-			throw new ServiceException("401-1", "아이디 또는 비밀번호가 일치하지 않습니다.");
-		}
-
-		Member actor = opActor.get();
-
-		// if (!actor.getapiKey().equals(apiKey)) {
-		// 	throw new ServiceException("401-1", "비밀번호가 일치하지 않습니다.");
-		// }
-
-		return actor;
 	}
 }
