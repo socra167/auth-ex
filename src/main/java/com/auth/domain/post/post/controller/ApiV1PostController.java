@@ -84,7 +84,7 @@ public class ApiV1PostController {
     record WriteReqBody(
         @NotBlank @Length(min = 3) String title,
         @NotBlank @Length(min = 3) String content,
-        @NotNull long authorId) {
+        @NotNull Long authorId) { // validation 체크를 하려면 원시타입이 아닌 객체 타입이어야 한다
     }
 
     @PostMapping
