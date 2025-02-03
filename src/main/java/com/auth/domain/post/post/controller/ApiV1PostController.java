@@ -23,6 +23,7 @@ import com.auth.global.exception.ServiceException;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -97,8 +98,11 @@ public class ApiV1PostController {
 	}
 
 	@PostMapping
-	public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body, @RequestHeader Long authorId,
-		@RequestHeader String password) {
+	public RsData<PostDto> write(@RequestBody @Valid WriteReqBody body, @RequestHeader @NotBlank String credentials) {
+
+		String[] credentialsBits = credentials.split("/");
+		long authorId = Long.parseLong(credentialsBits[0]);
+		String password = credentialsBits[1];
 
 		Member actor = memberService.findById(authorId).get();
 
