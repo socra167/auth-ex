@@ -36,13 +36,14 @@ public class Post extends BaseTime {
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
-    public void addComment(Member author, String content) {
+    public Comment addComment(Member author, String content) {
         Comment comment = Comment.builder()
             .post(this)
             .author(author)
             .content(content)
             .build();
         comments.add(comment); // CascadeType.PERSIST에 의해 List에 추가하면 실제 Comment도 생성된다
+        return comment;
     }
 
     public Comment getCommentById(long id) {
