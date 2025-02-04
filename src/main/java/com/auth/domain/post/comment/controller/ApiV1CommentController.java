@@ -80,6 +80,10 @@ public class ApiV1CommentController {
 
 		Comment comment = post.getCommentById(id);
 
+		if (comment.getAuthor().getId() != actor.getId()) {
+			throw new ServiceException("403-1", "자신이 작성한 댓글만 수정 가능합니다.");
+		}
+
 		comment.modify(body.content()); // setter를 사용하는 것보다, 수정 메서드를 만들어 사용하는 게 낫다
 		// setter보다 메서드 이름으로 의도를 파악하기 쉽고, 수정 작업의 전처리, 후처리 작업을 관리하기 좋다
 
