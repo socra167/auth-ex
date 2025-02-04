@@ -19,7 +19,6 @@ import com.auth.global.Rq;
 import com.auth.global.dto.RsData;
 import com.auth.global.exception.ServiceException;
 
-import jakarta.persistence.EntityManager;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +29,6 @@ public class ApiV1CommentController {
 
 	private final PostService postService;
 	private final Rq rq;
-	private final EntityManager entityManager;
 
 	@GetMapping
 	public List<CommentDto> getItems(@PathVariable long postId) {
@@ -60,7 +58,9 @@ public class ApiV1CommentController {
 		Post post = postService.getItem(postId)
 			.orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시물입니다."));
 		Comment comment = post.addComment(actor, body.content());
-		entityManager.flush();
+
+		postService.flush();
+
 		return new RsData<>(
 			"201-1",
 			"%d번 댓글 작성이 완료되었습니다.".formatted(comment.getId())

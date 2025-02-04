@@ -49,4 +49,9 @@ public class PostService {
         post.setTitle(title);
         post.setContent(content);
     }
+
+    public void flush() {
+        postRepository.flush(); // Repository를 사용해 flush()를 할 수 있다.
+        // Spring Data JPA를 벗어나지 않으면서(EntityManager를 사용하지 않고) flush()를 하고싶으면 Repository를 사용하는게 낫다.
+    }
 }
