@@ -80,12 +80,8 @@ public class ApiV1CommentController {
 			.orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시물입니다."));
 
 		Comment comment = post.getCommentById(id);
-
 		// admin도 아니고, 작성자도 아닌 경우 댓글을 수정할 수 없다
-		if (!actor.isAdmin() && comment.getAuthor().getId() != actor.getId()) {
-			throw new ServiceException("403-1", "자신이 작성한 댓글만 수정 가능합니다.");
-		}
-
+		comment.canModify(actor);
 		comment.modify(body.content()); // setter를 사용하는 것보다, 수정 메서드를 만들어 사용하는 게 낫다
 		// setter보다 메서드 이름으로 의도를 파악하기 쉽고, 수정 작업의 전처리, 후처리 작업을 관리하기 좋다
 
@@ -103,11 +99,7 @@ public class ApiV1CommentController {
 			.orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시물입니다."));
 
 		Comment comment = post.getCommentById(id);
-
-		if (comment.getAuthor().getId() != actor.getId()) {
-			throw new ServiceException("403-1", "자신이 작성한 댓글만 삭제 가능합니다.");
-		}
-
+		comment.canDelete(actor);
 		post.deleteComment(comment);
 
 		return new RsData<>(
