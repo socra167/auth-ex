@@ -1,5 +1,6 @@
 package com.auth.domain.post.post.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.auth.domain.member.member.entity.Member;
@@ -30,6 +31,16 @@ public class Post extends BaseTime {
 
     private String content;
 
-    @OneToMany(mappedBy = "post_id", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
-    private List<Comment> comments;
+    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
+
+    public void addComment(Member author, String content) {
+        Comment comment = Comment.builder()
+            .post(this)
+            .author(author)
+            .content(content)
+            .build();
+        comments.add(comment); // CascadeType.PERSIST에 의해 List에 추가하면 실제 Comment도 생성된다
+    }
 }
