@@ -3,6 +3,7 @@ package com.auth.domain.post.comment.controller;
 import java.util.List;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -90,6 +91,27 @@ public class ApiV1CommentController {
 		return new RsData<>(
 			"200-1",
 			"%d번 댓글 수정이 완료되었습니다.".formatted(id)
+		);
+	}
+
+	@Transactional
+	@DeleteMapping("{id}")
+	public RsData<Void> delete(@PathVariable long postId, @PathVariable long id) {
+		Member actor = rq.getAuthenticatedActor();
+		Post post = postService.getItem(postId)
+			.orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시물입니다."));
+
+		Comment comment = post.getCommentById(id);
+
+		if (comment.getAuthor().getId() != actor.getId()) {
+			throw new ServiceException("403-1", "자신이 작성한 댓글만 삭제 가능합니다.");
+		}
+
+		post.deleteComment(comment);
+
+		return new RsData<>(
+			"200-1",
+			"%d번 댓글 삭제가 완료되었습니다.".formatted(id)
 		);
 	}
 }
