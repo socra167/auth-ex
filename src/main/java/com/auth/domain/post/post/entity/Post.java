@@ -6,6 +6,7 @@ import java.util.List;
 import com.auth.domain.member.member.entity.Member;
 import com.auth.domain.post.comment.entity.Comment;
 import com.auth.global.entity.BaseTime;
+import com.auth.global.exception.ServiceException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -42,5 +43,12 @@ public class Post extends BaseTime {
             .content(content)
             .build();
         comments.add(comment); // CascadeType.PERSIST에 의해 List에 추가하면 실제 Comment도 생성된다
+    }
+
+    public Comment getCommentById(long id) {
+        return comments.stream()
+            .filter(comment -> comment.getId() == id)
+            .findFirst()
+            .orElseThrow(() -> new ServiceException("404-2", "존재하지 않는 댓글입니다."));
     }
 }
