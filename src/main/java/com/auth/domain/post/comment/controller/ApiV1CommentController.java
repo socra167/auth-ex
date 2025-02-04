@@ -81,7 +81,8 @@ public class ApiV1CommentController {
 
 		Comment comment = post.getCommentById(id);
 
-		if (comment.getAuthor().getId() != actor.getId()) {
+		// admin도 아니고, 작성자도 아닌 경우 댓글을 수정할 수 없다
+		if (!actor.isAdmin() && comment.getAuthor().getId() != actor.getId()) {
 			throw new ServiceException("403-1", "자신이 작성한 댓글만 수정 가능합니다.");
 		}
 
