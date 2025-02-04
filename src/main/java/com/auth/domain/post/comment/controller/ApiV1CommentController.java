@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,6 +65,27 @@ public class ApiV1CommentController {
 		return new RsData<>(
 			"201-1",
 			"%d번 댓글 작성이 완료되었습니다.".formatted(comment.getId())
+		);
+	}
+
+	record ModifyReqBody(String content) {
+	}
+
+	@Transactional
+	@PutMapping("{id}")
+	public RsData<Void> modify(@PathVariable long postId, @PathVariable long id, @RequestBody ModifyReqBody body) {
+		Member actor = rq.getAuthenticatedActor();
+		Post post = postService.getItem(postId)
+			.orElseThrow(() -> new ServiceException("404-1", "존재하지 않는 게시물입니다."));
+
+		Comment comment = post.getCommentById(id);
+
+		comment.modify(body.content()); // setter를 사용하는 것보다, 수정 메서드를 만들어 사용하는 게 낫다
+		// setter보다 메서드 이름으로 의도를 파악하기 쉽고, 수정 작업의 전처리, 후처리 작업을 관리하기 좋다
+
+		return new RsData<>(
+			"200-1",
+			"%d번 댓글 수정이 완료되었습니다.".formatted(id)
 		);
 	}
 }
